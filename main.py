@@ -184,7 +184,10 @@ def val(epoch):
         print('Saving pth file')
 
         if args.cut_mix_prob == 0:
-            csv_name = f"./checkpoint/checkpoint_{args.model_name}_no_cut_mix_info.csv"
+            if args.kd:
+                csv_name = f"./checkpoint/checkpoint_{args.model_name}_no_cut_mix_info_kd.csv"
+            else:
+                csv_name = f"./checkpoint/checkpoint_{args.model_name}_no_cut_mix_info.csv"
         else:
             csv_name = f"./checkpoint/checkpoint_{args.model_name}_cut_mix_info.csv"
 
@@ -196,12 +199,12 @@ def val(epoch):
             csv_file.close()
 
         if args.cut_mix_prob == 0:
-            torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix.pth')
-        else:
             if args.kd:
-                torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_KD.pth')
+                torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_kd.pth')
             else:
-                torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}.pth')
+                torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix.pth')
+        else:
+            torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}.pth')
 
         best_acc = acc
 
@@ -263,12 +266,12 @@ def train_kd(epoch, student_net, teacher_net):
 
 
 if args.cut_mix_prob == 0:
-    writer = SummaryWriter(f'./logs/{args.model_name}_no_cut_mix')
-else:
     if args.kd:
-        writer = SummaryWriter(f'./logs/{args.model_name}_KD')
+        writer = SummaryWriter(f'./logs/{args.model_name}_no_cut_mix_kd') 
     else:
-        writer = SummaryWriter(f'./logs/{args.model_name}')
+        writer = SummaryWriter(f'./logs/{args.model_name}_no_cut_mix')
+else:
+    writer = SummaryWriter(f'./logs/{args.model_name}')
 
 test_avg_loss = 0.0
 test_avg_acc = 0.0

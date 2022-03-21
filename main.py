@@ -25,6 +25,8 @@ parser.add_argument('--model_name', default="PreActResNet50", type=str, help='mo
 parser.add_argument('--optimizer', default="SGD", type=str, help='optimizer name')
 parser.add_argument('--lr_scheduler', default="CosineAnnealingLR", type=str, help='lr scheduler')
 parser.add_argument('--kd', default=False, type=bool, help='using kd for student')
+parser.add_argument('--alpha', default=0.6, type=float, help='using kd for student, the value of alpha for kd loss')
+parser.add_argument('--T', default=4, type=int, help='using kd for student, the value of T for softmax')
 parser.add_argument('--teacher_model', default="PreActResNet50", type=str, help='teacher model name')
 args = parser.parse_args()
 
@@ -240,7 +242,7 @@ def train_kd(epoch, student_net, teacher_net):
     correct = 0
     total = 0
 
-    criterion = make_criterion()
+    criterion = make_criterion(args.alpha, args.T)
 
     for batch_idx, (inputs, hard_targets) in enumerate(train_loader):
         inputs, hard_targets = inputs.to(device), hard_targets.to(device)

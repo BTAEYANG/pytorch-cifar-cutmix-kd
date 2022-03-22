@@ -27,6 +27,7 @@ parser.add_argument('--lr_scheduler', default="CosineAnnealingLR", type=str, hel
 parser.add_argument('--kd', default=False, type=bool, help='using kd for student')
 parser.add_argument('--alpha', default=0.6, type=float, help='using kd for student, the value of alpha for kd loss')
 parser.add_argument('--T', default=4, type=int, help='using kd for student, the value of T for softmax')
+parser.add_argument('--trial', type=int, default=1, help='trial id')
 parser.add_argument('--teacher_model', default="PreActResNet50", type=str, help='teacher model name')
 args = parser.parse_args()
 
@@ -187,11 +188,11 @@ def val(epoch):
 
         if args.cut_mix_prob == 0:
             if args.kd:
-                csv_name = f"./checkpoint/checkpoint_{args.model_name}_no_cut_mix_info_kd.csv"
+                csv_name = f"./checkpoint/checkpoint_{args.model_name}_no_cut_mix_info_kd_{args.trial}.csv"
             else:
-                csv_name = f"./checkpoint/checkpoint_{args.model_name}_no_cut_mix_info.csv"
+                csv_name = f"./checkpoint/checkpoint_{args.model_name}_no_cut_mix_info_{args.trial}.csv"
         else:
-            csv_name = f"./checkpoint/checkpoint_{args.model_name}_cut_mix_info.csv"
+            csv_name = f"./checkpoint/checkpoint_{args.model_name}_cut_mix_info_{args.trial}.csv"
 
         with open(csv_name, mode='a', newline='', encoding='utf8') as csv_file:
             csv_writer = csv.writer(csv_file)
@@ -202,11 +203,11 @@ def val(epoch):
 
         if args.cut_mix_prob == 0:
             if args.kd:
-                torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_kd.pth')
+                torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_kd_{args.trial}.pth')
             else:
-                torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix.pth')
+                torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_{args.trial}.pth')
         else:
-            torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}.pth')
+            torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_cut_mix_{args.trial}.pth')
 
         best_acc = acc
 

@@ -296,7 +296,7 @@ for epoch in range(start_epoch, start_epoch + args.epochs):
             teacher_net = PreActResNet50()
             teacher_net = teacher_net.to(device)
             print('==> Resuming teacher from checkpoint，ready to KD Training')
-            pth_name = f'./checkpoint/{args.teacher_model}_{args.optimizer}_{args.lr_scheduler}.pth'
+            pth_name = f'./checkpoint/{args.teacher_model}_{args.optimizer}_{args.lr_scheduler}_{args.trial}.pth'
             checkpoint = torch.load(pth_name)
             teacher_net.load_state_dict(checkpoint['net'], strict=False)
             train_loss, train_acc = train_kd(epoch, student_net, teacher_net)

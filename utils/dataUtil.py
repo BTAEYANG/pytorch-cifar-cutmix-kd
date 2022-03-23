@@ -29,9 +29,7 @@ def getDataLoader(split_factor: float = 0.1, seed: int = 66, data_set: str = 'CI
             root='/home/lab265/lab265/datasets/CIFAR10', train=False, download=True, transform=test_Transforms)
     elif data_set == 'CIFAR100':
         print('=> loading cifar100 data...')
-        mean = [x / 255 for x in [129.3, 124.1, 112.4]]
-        std = [x / 255 for x in [68.2, 65.4, 70.4]]
-        normalize = transforms.Normalize(mean=mean, std=std)
+        normalize = transforms.Normalize(mean=[0.507, 0.487, 0.441], std=[0.267, 0.256, 0.276])
         train_Transforms = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),

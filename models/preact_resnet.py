@@ -106,8 +106,8 @@ def PreActResNet50(num_classes: int = 10):
     return PreActResNet(PreActBottleneck, [3, 4, 6, 3], num_classes=num_classes)
 
 
-def PreActResNet101():
-    return PreActResNet(PreActBottleneck, [3, 4, 23, 3])
+def PreActResNet101(num_classes: int = 10):
+    return PreActResNet(PreActBottleneck, [3, 4, 23, 3], num_classes=num_classes)
 
 
 def PreActResNet152():

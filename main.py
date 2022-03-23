@@ -69,19 +69,23 @@ if device == 'cuda':
     net = torch.nn.DataParallel(net)
     cudnn.benchmark = True
 
+
 if args.resume:
     # Load checkpoint.
     print('==> Resuming from checkpoint，ready to test')
     assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
     checkpoint = torch.load(f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}.pth')
+    if args.kd:
+        checkpoint = torch.load(f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_kd_{args.trial}.pth')
+    else:
+        checkpoint = torch.load(f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_{args.trial}.pth')
     net.load_state_dict(checkpoint['net'])
     best_acc = checkpoint['acc']
     checkpoint_epoch = checkpoint['epoch']
     model_name = checkpoint['model_name']
     optimizer = checkpoint['optimizer']
     scheduler = checkpoint['scheduler']
-    print(
-        f'==> Loading Checkpoint，acc：{best_acc}%；checkpoint_epoch：{checkpoint_epoch}, model_name：{model_name}, optimizer：{optimizer}, scheduler：{scheduler}')
+    print(f'==> Loading Checkpoint，acc：{best_acc}%；checkpoint_epoch：{checkpoint_epoch}, model_name：{model_name}, optimizer：{optimizer}, scheduler：{scheduler}')
 
 criterion = nn.CrossEntropyLoss()
 optimizer = SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4, nesterov=True)
@@ -192,7 +196,7 @@ def val(epoch):
             else:
                 csv_name = f"./checkpoint/checkpoint_{args.model_name}_no_cut_mix_info_{args.trial}.csv"
         else:
-            csv_name = f"./checkpoint/checkpoint_{args.model_name}_cut_mix_info_{args.trial}.csv"
+            csv_name = f"./checkpoint/checkpoint_{args.model_name}_cut_mix_info.csv"
 
         with open(csv_name, mode='a', newline='', encoding='utf8') as csv_file:
             csv_writer = csv.writer(csv_file)
@@ -207,7 +211,7 @@ def val(epoch):
             else:
                 torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_{args.trial}.pth')
         else:
-            torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_cut_mix_{args.trial}.pth')
+            torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_cut_mix.pth')
 
         best_acc = acc
 
@@ -270,7 +274,7 @@ def train_kd(epoch, student_net, teacher_net):
 
 if args.cut_mix_prob == 0:
     if args.kd:
-        writer = SummaryWriter(f'./logs/{args.model_name}_no_cut_mix_kd') 
+        writer = SummaryWriter(f'./logs/{args.model_name}_no_cut_mix_kd_{args.trial}') 
     else:
         writer = SummaryWriter(f'./logs/{args.model_name}_no_cut_mix')
 else:
@@ -287,7 +291,7 @@ for epoch in range(start_epoch, start_epoch + args.epochs):
         test_avg_loss += test_loss
         test_avg_acc += test_acc
         if epoch != 0 and (epoch + 1) % 10 == 0:
-            print(f"test_avg_loss：{test_avg_loss / 10}, acc：{test_avg_acc / 10}")
+            print(f"test_avg_loss：{test_avg_loss / 10}, acc：{test_avg_acc / 10} %")
             test_avg_loss = 0.0
             test_avg_acc = 0.0
     else:
@@ -296,7 +300,7 @@ for epoch in range(start_epoch, start_epoch + args.epochs):
             teacher_net = PreActResNet50()
             teacher_net = teacher_net.to(device)
             print('==> Resuming teacher from checkpoint，ready to KD Training')
-            pth_name = f'./checkpoint/{args.teacher_model}_{args.optimizer}_{args.lr_scheduler}_cut_mix_{args.trial}.pth'
+            pth_name = f'./checkpoint/{args.teacher_model}_{args.optimizer}_{args.lr_scheduler}_cut_mix.pth'
             checkpoint = torch.load(pth_name)
             teacher_net.load_state_dict(checkpoint['net'], strict=False)
             train_loss, train_acc = train_kd(epoch, student_net, teacher_net)

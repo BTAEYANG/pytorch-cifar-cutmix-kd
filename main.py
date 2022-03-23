@@ -38,7 +38,7 @@ best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
 # Data
-train_loader, validation_loader, test_loader = getDataLoader(split_factor=args.split_factor, seed=args.seed, data_set='CIFAR10')
+train_loader, validation_loader, test_loader = getDataLoader(split_factor=args.split_factor, seed=args.seed, data_set=args.data_set)
 
 # Model
 print('==> Building model..')

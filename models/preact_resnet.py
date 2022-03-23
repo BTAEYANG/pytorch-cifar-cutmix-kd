@@ -94,16 +94,16 @@ class PreActResNet(nn.Module):
         return out
 
 
-def PreActResNet18():
-    return PreActResNet(PreActBlock, [2, 2, 2, 2])
+def PreActResNet18(num_classes: int = 10):
+    return PreActResNet(PreActBlock, [2, 2, 2, 2], num_classes=num_classes)
 
 
 def PreActResNet34():
     return PreActResNet(PreActBlock, [3, 4, 6, 3])
 
 
-def PreActResNet50():
-    return PreActResNet(PreActBottleneck, [3, 4, 6, 3])
+def PreActResNet50(num_classes: int = 10):
+    return PreActResNet(PreActBottleneck, [3, 4, 6, 3], num_classes=num_classes)
 
 
 def PreActResNet101():

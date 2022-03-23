@@ -74,11 +74,13 @@ if args.resume:
     # Load checkpoint.
     print('==> Resuming from checkpoint，ready to test')
     assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-    checkpoint = torch.load(f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}.pth')
-    if args.kd:
-        checkpoint = torch.load(f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_kd_{args.trial}.pth')
+    if args.model_name == 'PreActResNet18':
+        if args.kd:
+            checkpoint = torch.load(f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_kd_{args.trial}.pth')
+        else:
+            checkpoint = torch.load(f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_{args.trial}.pth')
     else:
-        checkpoint = torch.load(f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_{args.trial}.pth')
+        checkpoint = torch.load(f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}.pth')
     net.load_state_dict(checkpoint['net'])
     best_acc = checkpoint['acc']
     checkpoint_epoch = checkpoint['epoch']

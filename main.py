@@ -287,6 +287,7 @@ test_avg_acc = 0.0
 for epoch in range(start_epoch, start_epoch + args.epochs):
     current_lr = optimizer.state_dict()['param_groups'][0]['lr']
     writer.add_scalar('lr', current_lr, (epoch + 1))
+    scheduler.step()    
 
     if args.resume:
         test_loss, test_acc = test(epoch)
@@ -314,7 +315,5 @@ for epoch in range(start_epoch, start_epoch + args.epochs):
         writer.add_scalars("loss", {"train": train_loss, "val": val_loss}, (epoch + 1))
         # log epoch top1_acc
         writer.add_scalars("top1_acc", {"train": train_acc, "val": val_acc}, (epoch + 1))
-
-    scheduler.step()
 
 writer.close()

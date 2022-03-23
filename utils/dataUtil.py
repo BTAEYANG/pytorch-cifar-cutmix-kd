@@ -66,3 +66,13 @@ def getDataLoader(split_factor: float = 0.1, seed: int = 66, data_set: str = 'CI
                                    pin_memory=True)
     test_loader = DataLoader(test_set, batch_size=100, shuffle=True, num_workers=4, drop_last=False, pin_memory=True)
     return train_loader, validation_loader, test_loader
+
+
+if __name__ == '__main__':
+    train_loader, validation_loader, test_loader = getDataLoader(data_set="CIFAR100")
+    print(len(train_loader), len(validation_loader), len(test_loader))
+
+    for batch_idx, (inputs, targets) in enumerate(train_loader):
+        print(batch_idx, inputs.size(), targets.size())
+        print(targets)
+        break

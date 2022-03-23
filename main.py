@@ -28,6 +28,8 @@ parser.add_argument('--kd', default=False, type=bool, help='using kd for student
 parser.add_argument('--alpha', default=0.6, type=float, help='using kd for student, the value of alpha for kd loss')
 parser.add_argument('--T', default=4, type=int, help='using kd for student, the value of T for softmax')
 parser.add_argument('--trial', type=int, default=1, help='trial id')
+parser.add_argument('--data_set', type=str, default='CIFAR10', help='select data set')
+parser.add_argument('--num_classes', type=int, default=10, help='net final num classes')
 parser.add_argument('--teacher_model', default="PreActResNet50", type=str, help='teacher model name')
 args = parser.parse_args()
 
@@ -36,20 +38,20 @@ best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
 # Data
-train_loader, validation_loader, test_loader = getDataLoader(split_factor=args.split_factor, seed=args.seed)
+train_loader, validation_loader, test_loader = getDataLoader(split_factor=args.split_factor, seed=args.seed, data_set='CIFAR10')
 
 # Model
 print('==> Building model..')
 net = None
 
 if args.model_name == 'PreActResNet18':
-    net = PreActResNet18()
+    net = PreActResNet18(num_classes=args.num_classes)
 elif args.model_name == 'PreActResNet50':
-    net = PreActResNet50()
+    net = PreActResNet50(num_classes=args.num_classes)
 elif args.model_name == 'ResNet18':
-    net = ResNet18()
+    net = ResNet18(num_classes=args.num_classes)
 elif args.model_name == 'ResNet50':
-    net = ResNet50()
+    net = ResNet50(num_classes=args.num_classes)
 elif args.model_name == 'VGG19':
     net = VGG('VGG19')
 # net = GoogLeNet()
@@ -77,11 +79,11 @@ if args.resume:
 
     if args.model_name == 'PreActResNet18':
         if args.kd:
-            checkpoint = torch.load(f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_kd_{args.trial}.pth')
+            checkpoint = torch.load(f'./checkpoint/{args.data_set}/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_kd_{args.trial}.pth')
         else:
-            checkpoint = torch.load(f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_{args.trial}.pth')
+            checkpoint = torch.load(f'./checkpoint/{args.data_set}/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_{args.trial}.pth')
     else:
-        checkpoint = torch.load(f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}.pth')
+        checkpoint = torch.load(f'./checkpoint/{args.data_set}/{args.model_name}_{args.optimizer}_{args.lr_scheduler}.pth')
     net.load_state_dict(checkpoint['net'])
     best_acc = checkpoint['acc']
     checkpoint_epoch = checkpoint['epoch']
@@ -104,7 +106,7 @@ scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epo
 
 
 def del_file():
-    fileNames = glob.glob(f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}.pth')
+    fileNames = glob.glob(f'./checkpoint/{args.data_set}/{args.model_name}_{args.optimizer}_{args.lr_scheduler}.pth')
     for fileName in fileNames:
         os.remove(fileName)
         print(f"Remove pth file: {fileNames}")
@@ -195,11 +197,11 @@ def val(epoch):
 
         if args.cut_mix_prob == 0:
             if args.kd:
-                csv_name = f"./checkpoint/checkpoint_{args.model_name}_no_cut_mix_info_kd_{args.trial}.csv"
+                csv_name = f"./checkpoint/{args.data_set}/checkpoint_{args.model_name}_no_cut_mix_info_kd_{args.trial}.csv"
             else:
-                csv_name = f"./checkpoint/checkpoint_{args.model_name}_no_cut_mix_info_{args.trial}.csv"
+                csv_name = f"./checkpoint/{args.data_set}/checkpoint_{args.model_name}_no_cut_mix_info_{args.trial}.csv"
         else:
-            csv_name = f"./checkpoint/checkpoint_{args.model_name}_cut_mix_info.csv"
+            csv_name = f"./checkpoint/{args.data_set}/checkpoint_{args.model_name}_cut_mix_info.csv"
 
         with open(csv_name, mode='a', newline='', encoding='utf8') as csv_file:
             csv_writer = csv.writer(csv_file)
@@ -210,11 +212,11 @@ def val(epoch):
 
         if args.cut_mix_prob == 0:
             if args.kd:
-                torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_kd_{args.trial}.pth')
+                torch.save(state, f'./checkpoint/{args.data_set}/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_kd_{args.trial}.pth')
             else:
-                torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_{args.trial}.pth')
+                torch.save(state, f'./checkpoint/{args.data_set}/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_no_cut_mix_{args.trial}.pth')
         else:
-            torch.save(state, f'./checkpoint/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_cut_mix.pth')
+            torch.save(state, f'./checkpoint/{args.data_set}/{args.model_name}_{args.optimizer}_{args.lr_scheduler}_cut_mix.pth')
 
         best_acc = acc
 
@@ -277,11 +279,11 @@ def train_kd(epoch, student_net, teacher_net):
 
 if args.cut_mix_prob == 0:
     if args.kd:
-        writer = SummaryWriter(f'./logs/{args.model_name}_no_cut_mix_kd_{args.trial}') 
+        writer = SummaryWriter(f'./logs/{args.data_set}/{args.model_name}_no_cut_mix_kd_{args.trial}') 
     else:
-        writer = SummaryWriter(f'./logs/{args.model_name}_no_cut_mix')
+        writer = SummaryWriter(f'./logs/{args.data_set}/{args.model_name}_no_cut_mix')
 else:
-    writer = SummaryWriter(f'./logs/{args.model_name}')
+    writer = SummaryWriter(f'./logs/{args.data_set}/{args.model_name}')
 
 test_avg_loss = 0.0
 test_avg_acc = 0.0
@@ -303,7 +305,7 @@ for epoch in range(start_epoch, start_epoch + args.epochs):
             teacher_net = PreActResNet50()
             teacher_net = teacher_net.to(device)
             print('==> Resuming teacher from checkpoint，ready to KD Training')
-            pth_name = f'./checkpoint/{args.teacher_model}_{args.optimizer}_{args.lr_scheduler}_cut_mix.pth'
+            pth_name = f'./checkpoint/{args.data_set}/{args.teacher_model}_{args.optimizer}_{args.lr_scheduler}_cut_mix.pth'
             checkpoint = torch.load(pth_name)
             teacher_net.load_state_dict(checkpoint['net'], strict=False)
             train_loss, train_acc = train_kd(epoch, student_net, teacher_net)

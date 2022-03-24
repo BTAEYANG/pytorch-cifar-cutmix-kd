@@ -13,23 +13,23 @@ from utils.dataUtil import getDataLoader
 from utils.tools import progress_bar, rand_bbox
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
-parser.add_argument('--lr', default=0.05, type=float, help='learning rate 0.02')
+parser.add_argument('--lr', default=0.01, type=float, help='learning rate 0.01')
 parser.add_argument('--resume', default=False, type=bool, help='resume from checkpoint')
 parser.add_argument('--beta', default=1.0, type=float, help='hyper parameter beta')
-parser.add_argument('--cut_mix_prob', default=0.3, type=float,
+parser.add_argument('--cut_mix_prob', default=0.5, type=float,
                     help='cut_mix probability cifar10 0.3 cifar100 0.5 imagenet 1.0, if value == 0 no use cut_mix')
-parser.add_argument('--epochs', default=550, type=int, help='epochs 550')
+parser.add_argument('--epochs', default=350, type=int, help='epochs size 350')
 parser.add_argument('--split_factor', default=0.2, type=int, help='split factor')
 parser.add_argument('--seed', default=66, type=int, help='seed')
 parser.add_argument('--model_name', default="PreActResNet50", type=str, help='model_name')
-parser.add_argument('--optimizer', default="Adam", type=str, help='optimizer name')
-parser.add_argument('--lr_scheduler', default="CosineAnnealingLR", type=str, help='lr scheduler')
+parser.add_argument('--optimizer', default="AdamW", type=str, help='optimizer name')
+parser.add_argument('--lr_scheduler', default="OneCycleLR", type=str, help='lr scheduler')
 parser.add_argument('--kd', default=False, type=bool, help='using kd for student')
 parser.add_argument('--alpha', default=0.9, type=float, help='using kd for student, the value of alpha for kd loss')
 parser.add_argument('--T', default=4, type=int, help='using kd for student, the value of T for softmax')
 parser.add_argument('--trial', type=int, default=1, help='trial id')
-parser.add_argument('--data_set', type=str, default='CIFAR10', help='select data set')
-parser.add_argument('--num_classes', type=int, default=10, help='net final num classes')
+parser.add_argument('--data_set', type=str, default='CIFAR100', help='select data set')
+parser.add_argument('--num_classes', type=int, default=100, help='net final num classes')
 parser.add_argument('--teacher_model', default="PreActResNet50", type=str, help='teacher model name')
 args = parser.parse_args()
 
@@ -97,8 +97,10 @@ if args.resume:
 criterion = nn.CrossEntropyLoss()
 # optimizer = Adam(net.parameters(), lr=args.lr, betas=(0.9, 0.999), eps=1e-8, weight_decay=1e-5)
 # optimizer = Adamax(net.parameters(), lr=args.lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
-optimizer = SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4, nesterov=True)
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
+# optimizer = SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4, nesterov=True)
+optimizer = AdamW(net.parameters(), lr=args.lr, betas=(0.9, 0.999), eps=1e-8, weight_decay=1e-5, amsgrad=False)
+# scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
+scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=args.lr, steps_per_epoch=len(train_loader), epochs=args.epochs)
 
 
 # optimizer = SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-4, nesterov=True)
@@ -157,6 +159,8 @@ def train(epoch):
 
         progress_bar(batch_idx, len(train_loader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                      % (train_loss / (batch_idx + 1), 100. * (correct / total), correct, total))
+
+        scheduler.step()
 
     return train_loss / (batch_idx + 1), 100. * (correct / total)
 
@@ -321,7 +325,5 @@ for epoch in range(start_epoch, start_epoch + args.epochs):
         writer.add_scalars("loss", {"train": train_loss, "val": val_loss}, (epoch + 1))
         # log epoch top1_acc
         writer.add_scalars("top1_acc", {"train": train_acc, "val": val_acc}, (epoch + 1))
-
-    scheduler.step()
 
 writer.close()

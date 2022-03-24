@@ -26,7 +26,8 @@ share/python-wheels/
 .installed.cfg
 *.egg
 .idea/
-checkpoint/
+*.pth
+*.csv
 logs/
 MANIFEST
 

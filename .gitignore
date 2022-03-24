@@ -28,7 +28,6 @@ share/python-wheels/
 .idea/
 *.pth
 *.csv
-logs/
 MANIFEST
 
 # PyInstaller

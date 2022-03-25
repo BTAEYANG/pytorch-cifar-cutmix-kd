@@ -310,7 +310,7 @@ for epoch in range(start_epoch, start_epoch + args.epochs):
     else:
         if args.kd:
             student_net = net
-            teacher_net = PreActResNet50()
+            teacher_net = PreActResNet50(num_classes=args.num_classes)
             teacher_net = teacher_net.to(device)
             print('==> Resuming teacher from checkpoint，ready to KD Training')
             pth_name = f'./checkpoint/{args.data_set}/{args.teacher_model}_{args.optimizer}_{args.lr_scheduler}_cut_mix.pth'
